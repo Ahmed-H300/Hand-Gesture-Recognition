@@ -42,4 +42,3 @@ Image = preprocessModel.preProcess(img)
 # saving the image
 cv2.imwrite("test.JPG", Image)
 
-
