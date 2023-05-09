@@ -132,14 +132,7 @@ def train():
         # convert features to np array
         features = np.array(features)
 
-        # # Split into training and testing sets
-        # X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
-
-        # if len(X_train) == 0 or len(X_test) == 0:
-        #         print("Not enough samples to split into training and testing sets.")
-        #         return
         # Train SVM
-        # svm_model = svm.train(X_train, y_train)
         svm_model = svm.train(features, labels)
         # save the model
         utils.saveModel(svm_model, output_dir, 'svm_model')
@@ -147,6 +140,97 @@ def train():
         print('Training Ended Successfully')
         # Exit Training
         print('Exit Training...')
+
+
+def train_test():
+        # list for labels
+        labels = np.array([])
+        # list for features
+        features = []
+        # list to store feature lengths
+        feature_lengths = None
+        # create the preprocces model
+        preprocessModel = PreprocessModel()
+        # create the feature extraction model
+        #choose whether SIFT or HOG to RUN
+        model = None
+        if hog_or_sift == 'sift':
+                # create SIFT Model
+                model = SIFT()
+                # initalize feature_lengths with empty array
+                feature_lengths = []
+        elif hog_or_sift == 'hog':
+                # create HOG Model
+                model = HOG()
+        else:
+                print('wrong choice for SIFT or HOG')
+                exit()
+        # create the SVM module
+        svm = SVM()
+        # create the utils module
+        utils = Utils()
+        # set the train path
+        path_train = data_dir_train
+        # loop through the original images
+        for class_name in os.listdir(path_train):
+                class_dir = os.path.join(path_train, class_name)
+                for foldername in os.listdir(class_dir):
+                    folder_path = os.path.join(class_dir,foldername)
+                    for filename in os.listdir(folder_path):
+                        # insert label
+                        labels = np.append(labels, foldername)
+                        # Load image
+                        img_path = os.path.join(folder_path, filename)
+                        img = cv2.imread(img_path)
+                        # preprocess the image
+                        Image = preprocessModel.preProcess(img)
+                        # get the features
+                        descriptors = model.compute(Image)
+                        if hog_or_sift == 'sift':
+                                # apped descriptors length
+                                feature_lengths.append(len(descriptors))
+                        
+                        # insert the feature in feature list
+                        features.append(descriptors)
+        
+        if hog_or_sift == 'sift':
+                # Determine the minimum feature length
+                min_feature_length = min(feature_lengths)
+                # Truncate the descriptors based on the minimum feature length and flatten them
+                features = [descriptors[:min_feature_length].flatten() for descriptors in features]
+                #load min_feature_length into file
+                min_feature_length_file_name = 'min_feature_length_sift'
+                utils.writeListToFile([min_feature_length], output_dir, min_feature_length_file_name, 0)
+
+        # convert features to np array
+        features = np.array(features)
+
+        # Split into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
+
+        if len(X_train) == 0 or len(X_test) == 0:
+                print("Not enough samples to split into training and testing sets.")
+                return
+        # Train SVM
+        svm_model = svm.train(X_train, y_train)
+        # save the model
+        utils.saveModel(svm_model, output_dir, 'svm_model')
+        # Training Ended
+        print('Training Ended Successfully')
+        # Test the model
+        print('Start Testing')
+        predictions = svm_model.predict(X_test)
+        # calculte accuracy
+        accuracy = utils.calculateAccuracy(predictions, y_test)
+        # make it %100
+        accuracy *= 100
+        # print accuracy
+        print("Accuracy {:.2f}".format(accuracy))
+        # Training Ended
+        print('Test Ended Successfully')
+        # Exit Training
+        print('Exit Train and test...')
+
 
 # print the welcome message
 def print_welcome_message():
@@ -188,7 +272,7 @@ def main():
         print_welcome_message()
 
         # get the choice whether to run train or test
-        userChoice = int(input("enter 1 to to test, 2 to train.\n"))
+        userChoice = int(input("enter 1 to to test, 2 to train, 3 to test and train.\n"))
 
         # if the user choice is 1 then run test
         if userChoice == 1:
@@ -198,6 +282,10 @@ def main():
         elif userChoice == 2:
                 print("Entering train mode...")
                 train()
+        # if the user choice is 3 then run train and test
+        elif userChoice == 3:
+                print("Entering train and test mode...")
+                train_test()
         # if the user choice is not 1 or 2 then print wrong choice
         else:
                 print("wrong choice")
