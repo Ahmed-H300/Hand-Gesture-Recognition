@@ -129,4 +129,4 @@ class PreprocessModel:
 
         # saving the image
         segmented = cv2.cvtColor(segmentedImgDueToKMeans, cv2.COLOR_BGR2GRAY)
-        return segmented
+        return cv2.resize(segmented, (64, 64))

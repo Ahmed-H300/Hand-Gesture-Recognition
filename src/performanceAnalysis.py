@@ -22,3 +22,7 @@ class Utils:
 
     def getModel(self, path, filename):
         return joblib.load(path+'/'+filename+'.joblib')
+    
+    # load the file into array
+    def loadListFromFile(self, path, filename):
+        return np.loadtxt(path+'/'+filename+'.txt')

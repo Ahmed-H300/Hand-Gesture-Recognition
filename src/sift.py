@@ -28,6 +28,15 @@ class SIFT:
         # Convert to grayscale
         # the image form preprocces model is grey scaled so no need
         # Detect keypoints and compute descriptors
+        _, descriptors = self.sift.detectAndCompute(img, None)
+        # return keypoints and descriptors
+        return descriptors
+    
+    def compute_keypoints(self, img):
+
+        # Convert to grayscale
+        # the image form preprocces model is grey scaled so no need
+        # Detect keypoints and compute descriptors
         keypoints, descriptors = self.sift.detectAndCompute(img, None)
         # return keypoints and descriptors
         return (keypoints, descriptors)
