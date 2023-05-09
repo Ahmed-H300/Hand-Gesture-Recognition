@@ -10,7 +10,7 @@ data_dir_test = 'data'
 output_dir = 'out'
 
 # choose whether SIFT or HOG
-hog_or_sift = 'hog'
+hog_or_sift = 'sift'
 
 # results file name
 results_file_name = 'results'

@@ -7,6 +7,8 @@ from src.sift import SIFT
 from src.hog import HOG
 from src.SVM import SVM
 from src.performanceAnalysis import Utils
+from sklearn.model_selection import train_test_split
+
 
 
 # Function test
@@ -15,20 +17,25 @@ def test():
         labels = np.array([])
         # create the preprocces model
         preprocessModel = PreprocessModel()
+        # create the utils module
+        utils = Utils()
         # create the feature extraction model
         #choose whether SIFT or HOG to RUN
         model = None
+        min_feature_length = None
         if hog_or_sift == 'sift':
                 # create SIFT Model
                 model = SIFT()
+                # load min_feature_length
+                min_feature_length_file_name = 'min_feature_length_sift'
+                min_feature_length = utils.loadListFromFile(output_dir, min_feature_length_file_name)
+                min_feature_length = int(min_feature_length)
         elif hog_or_sift == 'hog':
                 # create HOG Model
                 model = HOG()
         else:
                 print('wrong choice for SIFT or HOG')
                 exit()
-        # create the utils module
-        utils = Utils()
         # load SVM train file
         svm = utils.getModel(output_dir, 'svm_model')
         # set the train path
@@ -42,6 +49,11 @@ def test():
                 Image = preprocessModel.preProcess(img)
                 # get the features
                 descriptors = model.compute(Image)
+                if hog_or_sift == 'sift':
+                        descriptors = descriptors[:min_feature_length]
+                        # Flatten the descriptors to 1D array
+                        descriptors = descriptors.flatten()
+                
                 # predict with SVM
                 prediction = svm.predict([descriptors])
                 # append it to labels
@@ -62,6 +74,8 @@ def train():
         labels = np.array([])
         # list for features
         features = []
+        # list to store feature lengths
+        feature_lengths = None
         # create the preprocces model
         preprocessModel = PreprocessModel()
         # create the feature extraction model
@@ -70,6 +84,8 @@ def train():
         if hog_or_sift == 'sift':
                 # create SIFT Model
                 model = SIFT()
+                # initalize feature_lengths with empty array
+                feature_lengths = []
         elif hog_or_sift == 'hog':
                 # create HOG Model
                 model = HOG()
@@ -97,11 +113,33 @@ def train():
                         Image = preprocessModel.preProcess(img)
                         # get the features
                         descriptors = model.compute(Image)
+                        if hog_or_sift == 'sift':
+                                # apped descriptors length
+                                feature_lengths.append(len(descriptors))
+                        
                         # insert the feature in feature list
                         features.append(descriptors)
         
+        if hog_or_sift == 'sift':
+                # Determine the minimum feature length
+                min_feature_length = min(feature_lengths)
+                # Truncate the descriptors based on the minimum feature length and flatten them
+                features = [descriptors[:min_feature_length].flatten() for descriptors in features]
+                #load min_feature_length into file
+                min_feature_length_file_name = 'min_feature_length_sift'
+                utils.writeListToFile([min_feature_length], output_dir, min_feature_length_file_name, 0)
+
+        # convert features to np array
         features = np.array(features)
+
+        # # Split into training and testing sets
+        # X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
+
+        # if len(X_train) == 0 or len(X_test) == 0:
+        #         print("Not enough samples to split into training and testing sets.")
+        #         return
         # Train SVM
+        # svm_model = svm.train(X_train, y_train)
         svm_model = svm.train(features, labels)
         # save the model
         utils.saveModel(svm_model, output_dir, 'svm_model')
