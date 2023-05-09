@@ -15,6 +15,9 @@ if __name__ == '__main__':
     # calculte accuracy
     accuracy = utils.calculateAccuracy(predicted, actual)
 
+    # make it %100
+    accuracy *= 100
+
     # print accuracy
     print("Accuracy {:.2f}".format(accuracy))
 

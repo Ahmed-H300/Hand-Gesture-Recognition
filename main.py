@@ -61,7 +61,7 @@ def train():
         # list for labels
         labels = np.array([])
         # list for features
-        features = np.empty((0, feature_length))
+        features = []
         # create the preprocces model
         preprocessModel = PreprocessModel()
         # create the feature extraction model
@@ -98,8 +98,9 @@ def train():
                         # get the features
                         descriptors = model.compute(Image)
                         # insert the feature in feature list
-                        features = np.append(features, [descriptors], axis=0)
+                        features.append(descriptors)
         
+        features = np.array(features)
         # Train SVM
         svm_model = svm.train(features, labels)
         # save the model

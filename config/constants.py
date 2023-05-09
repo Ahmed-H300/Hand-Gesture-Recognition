@@ -12,10 +12,6 @@ output_dir = 'out'
 # choose whether SIFT or HOG
 hog_or_sift = 'hog'
 
-# feature length
-# feature_length = 3492
-feature_length = 2916
-
 # results file name
 results_file_name = 'results'
 

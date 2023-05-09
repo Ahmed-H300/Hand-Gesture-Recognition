@@ -48,7 +48,7 @@ class HOG:
         feature_vector = np.concatenate((hog_features, ULBP_vector))
 
         # return the hog image, lbp image and the feature vector
-        return hog_features
+        return feature_vector
     
     def compute_with_images(self, gray_img):
 
