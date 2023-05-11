@@ -1,4 +1,5 @@
 data/
+pretest/
 train/
 out/
 __pycache__/
