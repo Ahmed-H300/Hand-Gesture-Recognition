@@ -6,6 +6,7 @@ from src.preProcess import PreprocessModel
 from src.sift import SIFT
 from src.hog import HOG
 from src.SVM import SVM
+from src.rf import RF
 from src.performanceAnalysis import Utils
 from sklearn.model_selection import train_test_split
 from natsort import natsorted
@@ -42,8 +43,15 @@ def test():
 	else:
 			print('wrong choice for SIFT or HOG')
 			exit()
-	# load SVM train file
-	svm = utils.getModel(output_dir, 'svm_model')
+	# load classifier train file
+	classifier = None
+	if classifier_type == 'svm':
+		classifier = utils.getModel(output_dir, f'{classifier_type}_model')
+	elif classifier_type == 'rf':
+		classifier = utils.getModel(output_dir, f'{classifier_type}_model')
+	else:
+		print('wrong choice for SVM or RF')
+		exit()
 	# set the train path
 	path_test = data_dir_test
 	# loop through the original images
@@ -70,11 +78,11 @@ def test():
 			if model_type != 'hog':
 				# convert features to np vstack
 				descriptors = np.vstack(descriptors)
-				# predict with SVM
-				prediction = svm.predict(descriptors)
+				# predict with classifier
+				prediction = classifier.predict(descriptors)
 			else:
-				# predict with SVM
-				prediction = svm.predict([descriptors])
+				# predict with classifier
+				prediction = classifier.predict([descriptors])
 			# append it to labels
 			labels = np.append(labels, prediction)
 			photo_counter += 1
@@ -194,16 +202,23 @@ def train_builtin():
 # Train Function
 def train():
 	
-	# create the SVM module
-	svm = SVM()
+	# load classifier train file
+	classifier = None
+	if classifier_type == 'svm':
+		classifier = SVM()
+	elif classifier_type == 'rf':
+		classifier = RF()
+	else:
+		print('wrong choice for SVM or RF')
+		exit()
 	# create the utils module
 	utils = Utils()
 	# train
 	features, labels = train_builtin()
-	# Train SVM
-	svm_model = svm.train(features, labels)
+	# Train classifier
+	classifier_model = classifier.train(features, labels)
 	# save the model
-	utils.saveModel(svm_model, output_dir, 'svm_model')
+	utils.saveModel(classifier_model, output_dir, f'{classifier_type}_model')
 	print('Model Saved Successfully')
 	# Training Ended
 	print('Training Ended Successfully')
@@ -216,8 +231,15 @@ def train_test():
 	# train
 	features, labels = train_builtin()
 
-	# create the SVM module
-	svm = SVM()
+	# load classifier train file
+	classifier = None
+	if classifier_type == 'svm':
+		classifier = SVM()
+	elif classifier_type == 'rf':
+		classifier = RF()
+	else:
+		print('wrong choice for SVM or RF')
+		exit()
 	# create the utils module
 	utils = Utils()
 
@@ -227,15 +249,15 @@ def train_test():
 			print("Not enough samples to split into training and testing sets.")
 			return
 	# Train SVM
-	svm_model = svm.train(X_train, y_train)
+	classifier_model = classifier.train(X_train, y_train)
 	# save the model
-	utils.saveModel(svm_model, output_dir, 'svm_model')
+	utils.saveModel(classifier_model, output_dir, f'{classifier_type}_model')
 	print('Model Saved Successfully')
 	# Training Ended
 	print('Training Ended Successfully')
 	# Test the model
 	print('Start Testing')
-	predictions = svm_model.predict(X_test)
+	predictions = classifier_model.predict(X_test)
 	# calculte accuracy
 	accuracy = utils.calculateAccuracy(predictions, y_test)
 	# make it %100

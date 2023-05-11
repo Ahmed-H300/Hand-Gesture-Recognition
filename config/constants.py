@@ -12,6 +12,9 @@ output_dir = 'out'
 # choose whether SIFT or HOG
 model_type = 'sift'
 
+# choose whether SVM or RF
+classifier_type = 'svm'
+
 # results file name
 results_file_name = 'results'
 
