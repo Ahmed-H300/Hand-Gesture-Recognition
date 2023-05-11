@@ -5,11 +5,22 @@ from config.constants import *
 from src.preProcess import PreprocessModel
 from src.sift import SIFT
 from src.hog import HOG
-from src.SVM_threads import SVM
+from src.SVM import SVM
 from src.performanceAnalysis import Utils
 from sklearn.model_selection import train_test_split
 from natsort import natsorted
 
+# use with features discreptors to bag the feature into fixed size
+def bag_of_features(features, centres, k = 200):
+      vec = np.zeros((1, k))
+      for i in range(features.shape[0]):
+          feat = features[i]
+          diff = np.tile(feat, (k, 1)) - centres
+          dist = pow(((pow(diff, 2)).sum(axis = 1)), 0.5)
+          idx_dist = dist.argsort()
+          idx = idx_dist[0]
+          vec[0][idx] += 1
+      return vec
 
 # Function test
 def test():
@@ -22,15 +33,10 @@ def test():
 	# create the feature extraction model
 	#choose whether SIFT or HOG to RUN
 	model = None
-	min_feature_length = None
-	if hog_or_sift == 'sift':
+	if model_type == 'sift':
 			# create SIFT Model
 			model = SIFT()
-			# load min_feature_length
-			min_feature_length_file_name = 'min_feature_length_sift'
-			min_feature_length = utils.loadListFromFile(output_dir, min_feature_length_file_name)
-			min_feature_length = int(min_feature_length)
-	elif hog_or_sift == 'hog':
+	elif model_type == 'hog':
 			# create HOG Model
 			model = HOG()
 	else:
@@ -41,7 +47,6 @@ def test():
 	# set the train path
 	path_test = data_dir_test
 	# loop through the original images
-
 	images = os.listdir(path_test)
 	images = natsorted(images)
 	# get number of photos in the folder
@@ -56,13 +61,20 @@ def test():
 			Image = preprocessModel.preProcess(img)
 			# get the features
 			descriptors = model.compute(Image)
-			if hog_or_sift == 'sift':
-					descriptors = descriptors[:min_feature_length]
-					# Flatten the descriptors to 1D array
-					descriptors = descriptors.flatten()
-			
-			# predict with SVM
-			prediction = svm.predict([descriptors])
+			if model_type != 'hog':
+				# load centers
+				centres = np.load(os.path.join(output_dir, 'centers.npy'))
+				# convert features to np vstack
+				descriptors = bag_of_features(descriptors, centres, k)
+
+			if model_type != 'hog':
+				# convert features to np vstack
+				descriptors = np.vstack(descriptors)
+				# predict with SVM
+				prediction = svm.predict(descriptors)
+			else:
+				# predict with SVM
+				prediction = svm.predict([descriptors])
 			# append it to labels
 			labels = np.append(labels, prediction)
 			photo_counter += 1
@@ -80,117 +92,26 @@ def test():
 	# Exit Training
 	print('Exit Testing...')
 
-# Train Function
-def train():
+# built in train
+def train_builtin():
 	# list for labels
 	labels = np.array([])
 	# list for features
 	features = []
-	# list to store feature lengths
-	feature_lengths = None
 	# create the preprocces model
 	preprocessModel = PreprocessModel()
 	# create the feature extraction model
 	#choose whether SIFT or HOG to RUN
 	model = None
-	if hog_or_sift == 'sift':
-			# create SIFT Model
-			model = SIFT()
-			# initalize feature_lengths with empty array
-			feature_lengths = []
-	elif hog_or_sift == 'hog':
-			# create HOG Model
-			model = HOG()
-	else:
-			print('wrong choice for SIFT or HOG')
-			exit()
-	# create the SVM module
-	svm = SVM()
-	# create the utils module
-	utils = Utils()
-	# set the train path
-	path_train = data_dir_train
-	# loop through the original images
-	for class_name in os.listdir(path_train):
-		class_dir = os.path.join(path_train, class_name)
-		for foldername in os.listdir(class_dir):
-			folder_path = os.path.join(class_dir,foldername)
-			# get number of photos in the folder
-			number_of_photos = len(os.listdir(folder_path))
-			photo_counter = 0
-			for filename in os.listdir(folder_path):
-				if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')): 
-					# insert label  
-					labels = np.append(labels, foldername)
-					# Load image
-					img_path = os.path.join(folder_path, filename)
-					img = cv2.imread(img_path)
-					# preprocess the image
-					Image = preprocessModel.preProcess(img)
-					# get the features
-					descriptors = model.compute(Image)
-					if hog_or_sift == 'sift':
-						# apped descriptors length
-						feature_lengths.append(len(descriptors))
-
-					# insert the feature in feature list
-					features.append(descriptors)
-					photo_counter += 1
-					print(f"{photo_counter/number_of_photos:.2%} ", end='')
-					print('\r', end='', flush=True)
-		
-			print(f'\n{folder_path} Finished Training.')    
-	
-	if hog_or_sift == 'sift':
-		# Determine the minimum feature length
-		min_feature_length = min(feature_lengths)
-		# Truncate the descriptors based on the minimum feature length and flatten them
-		features = [descriptors[:min_feature_length].flatten() for descriptors in features]
-		#load min_feature_length into file
-		min_feature_length_file_name = 'min_feature_length_sift'
-		utils.writeListToFile([min_feature_length], output_dir, min_feature_length_file_name, 0)
-
-	# convert features to np array
-	features = np.array(features)
-
-	# Train SVM
-	svm_model = svm.train(features, labels)
-	# save the model
-	utils.saveModel(svm_model, output_dir, 'svm_model')
-	print('Model Saved Successfully')
-	# Training Ended
-	print('Training Ended Successfully')
-	# Exit Training
-	print('Exit Training...')
-
-# Train and Test Function
-def train_test():
-	# list for labels
-	labels = np.array([])
-	# list for features
-	features = []
-	# list to store feature lengths
-	feature_lengths = None
-	# create the preprocces model
-	preprocessModel = PreprocessModel()
-	# create the feature extraction model
-	#choose whether SIFT or HOG to RUN
-	model = None
-	if hog_or_sift == 'sift':
+	if model_type == 'sift':
 		# create SIFT Model
 		model = SIFT()
-		# initalize feature_lengths with empty array
-		feature_lengths = []
-	elif hog_or_sift == 'hog':
+	elif model_type == 'hog':
 		# create HOG Model
 		model = HOG()
 	else:
 		print('wrong choice for SIFT or HOG')
 		exit()
-	# create the SVM module
-	svm = SVM()
-	# create the utils module
-	utils = Utils()
 	# set the train path
 	path_train = data_dir_train
 	# loop through the original images
@@ -212,11 +133,9 @@ def train_test():
 					Image = preprocessModel.preProcess(img)
 					# get the features
 					descriptors = model.compute(Image)
-					if hog_or_sift == 'sift':
-							# apped descriptors length
-							feature_lengths.append(len(descriptors))
 					# insert the feature in feature list
-					features.append(descriptors)
+					if descriptors is not None:
+						features.append(descriptors)
 					photo_counter += 1
 					print(f"{photo_counter/number_of_photos:.2%} ", end='')
 					print('\r', end='', flush=True)
@@ -224,17 +143,83 @@ def train_test():
 			print(f'\n{folder_path} Finished Training.')
 						
 	
-	if hog_or_sift == 'sift':
-		# Determine the minimum feature length
-		min_feature_length = min(feature_lengths)
-		# Truncate the descriptors based on the minimum feature length and flatten them
-		features = [descriptors[:min_feature_length].flatten() for descriptors in features]
-		#load min_feature_length into file
-		min_feature_length_file_name = 'min_feature_length_sift'
-		utils.writeListToFile([min_feature_length], output_dir, min_feature_length_file_name, 0)
+	if model_type != 'hog':
+		criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 0.1)
+		flags = cv2.KMEANS_RANDOM_CENTERS
+		# convert features to np vstack
+		features = np.vstack(features)
+		# start clustering
+		compactness, labels_sift, centres = cv2.kmeans(features, k, None, criteria, 10, flags)
+		# save centers
+		np.save(os.path.join(output_dir, 'centers'), centres)
+		# empty the features
+		features = []
+		# loop through the original images
+		for class_name in os.listdir(path_train):
+			class_dir = os.path.join(path_train, class_name)
+			for foldername in os.listdir(class_dir):
+				folder_path = os.path.join(class_dir,foldername)
+				# get number of photos in the folder
+				number_of_photos = len(os.listdir(folder_path))
+				photo_counter = 0
+				for filename in os.listdir(folder_path):
+					if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')):
+						# Load image
+						img_path = os.path.join(folder_path, filename)
+						img = cv2.imread(img_path)
+						# preprocess the image
+						Image = preprocessModel.preProcess(img)
+						# get the features
+						descriptors = model.compute(Image)
+						# insert the feature in feature list
+						if descriptors is not None:
+							descriptors = bag_of_features(descriptors, centres, k)
+							features.append(descriptors)
+						photo_counter += 1
+						print(f"{photo_counter/number_of_photos:.2%} ", end='')
+						print('\r', end='', flush=True)
+				
+				print(f'\n{folder_path} Finished Converting Descriptors.')
+	
+	if model_type == 'hog':
+		# convert features to np array
+		features = np.array(features)
+	else:
+		# convert features to np vstack
+		features = np.vstack(features)
 
-	# convert features to np array
-	features = np.array(features)
+	# return features and labels
+	return (features, labels)
+
+# Train Function
+def train():
+	
+	# create the SVM module
+	svm = SVM()
+	# create the utils module
+	utils = Utils()
+	# train
+	features, labels = train_builtin()
+	# Train SVM
+	svm_model = svm.train(features, labels)
+	# save the model
+	utils.saveModel(svm_model, output_dir, 'svm_model')
+	print('Model Saved Successfully')
+	# Training Ended
+	print('Training Ended Successfully')
+	# Exit Training
+	print('Exit Training...')
+
+# Train and Test Function
+def train_test():
+	
+	# train
+	features, labels = train_builtin()
+
+	# create the SVM module
+	svm = SVM()
+	# create the utils module
+	utils = Utils()
 
 	# Split into training and testing sets
 	X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)

@@ -64,7 +64,8 @@ if __name__ == '__main__':
     # run the sift
     sift = SIFT()
     img = cv2.imread('test.jpg')
-    k, d = sift.compute(img)
+    img = cv2.resize(img, (64, 64))
+    k, d = sift.compute_keypoints(img)
     img_keypoints = sift.draw_descriptors(k, img)
     # save the image with the keypoints on it
     cv2.imwrite('test_sift.jpg', img_keypoints)
