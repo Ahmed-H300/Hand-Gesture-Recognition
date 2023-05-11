@@ -5,10 +5,10 @@ from config.constants import *
 from src.preProcess import PreprocessModel
 from src.sift import SIFT
 from src.hog import HOG
-from src.SVM import SVM
+from src.SVM_threads import SVM
 from src.performanceAnalysis import Utils
 from sklearn.model_selection import train_test_split
-
+from natsort import natsorted
 
 
 # Function test
@@ -41,7 +41,12 @@ def test():
         # set the train path
         path_test = data_dir_test
         # loop through the original images
-        for filename in os.listdir(path_test):
+
+        images = os.listdir(path_test)
+        images = natsorted(images)
+        print(images)
+        for filename in images:
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')): 
                 # Load image
                 img_path = os.path.join(path_test, filename)
                 img = cv2.imread(img_path)
@@ -104,21 +109,23 @@ def train():
                 for foldername in os.listdir(class_dir):
                     folder_path = os.path.join(class_dir,foldername)
                     for filename in os.listdir(folder_path):
-                        # insert label
-                        labels = np.append(labels, foldername)
-                        # Load image
-                        img_path = os.path.join(folder_path, filename)
-                        img = cv2.imread(img_path)
-                        # preprocess the image
-                        Image = preprocessModel.preProcess(img)
-                        # get the features
-                        descriptors = model.compute(Image)
-                        if hog_or_sift == 'sift':
+                        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')): 
+                            # insert label  
+                            labels = np.append(labels, foldername)
+                            # Load image
+                            img_path = os.path.join(folder_path, filename)
+                            img = cv2.imread(img_path)
+                            print(img_path)
+                            # preprocess the image
+                            Image = preprocessModel.preProcess(img)
+                            # get the features
+                            descriptors = model.compute(Image)
+                            if hog_or_sift == 'sift':
                                 # apped descriptors length
                                 feature_lengths.append(len(descriptors))
-                        
-                        # insert the feature in feature list
-                        features.append(descriptors)
+
+                            # insert the feature in feature list
+                            features.append(descriptors)    
         
         if hog_or_sift == 'sift':
                 # Determine the minimum feature length
@@ -177,21 +184,23 @@ def train_test():
                 for foldername in os.listdir(class_dir):
                     folder_path = os.path.join(class_dir,foldername)
                     for filename in os.listdir(folder_path):
-                        # insert label
-                        labels = np.append(labels, foldername)
-                        # Load image
-                        img_path = os.path.join(folder_path, filename)
-                        img = cv2.imread(img_path)
-                        # preprocess the image
-                        Image = preprocessModel.preProcess(img)
-                        # get the features
-                        descriptors = model.compute(Image)
-                        if hog_or_sift == 'sift':
-                                # apped descriptors length
-                                feature_lengths.append(len(descriptors))
-                        
-                        # insert the feature in feature list
-                        features.append(descriptors)
+                        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')): 
+                            # insert label
+                            labels = np.append(labels, foldername)
+                            # Load image
+                            img_path = os.path.join(folder_path, filename)
+                            img = cv2.imread(img_path)
+                            print(img_path)
+                            # preprocess the image
+                            Image = preprocessModel.preProcess(img)
+                            # get the features
+                            descriptors = model.compute(Image)
+                            if hog_or_sift == 'sift':
+                                    # apped descriptors length
+                                    feature_lengths.append(len(descriptors))
+                            
+                            # insert the feature in feature list
+                            features.append(descriptors)
         
         if hog_or_sift == 'sift':
                 # Determine the minimum feature length

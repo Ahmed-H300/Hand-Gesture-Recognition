@@ -13,7 +13,6 @@ class PreprocessModel:
                                              init_params='kmeans', random_state=0)
         # creating 2 Kmean models (one with K = 2 and the other one with K = 3)
         self.KMeans2_model = KMeans(n_clusters=2, random_state=0, n_init='auto')
-        self.KMeans3_model = KMeans(n_clusters=3, random_state=0, n_init='auto')
 
     def preProcess(self, img):
 
@@ -79,30 +78,17 @@ class PreprocessModel:
 
         # fitting and predicting the images
         predictedKmeans2 = self.KMeans2_model.fit_predict(reshapedImg)
-        predictedKmeans3 = self.KMeans3_model.fit_predict(reshapedImg)
 
         # predicting the skin color
         skinLabelKmeans2 = self.KMeans2_model.predict(typicalSkinColorYCbCr)
-        skinLabelKmeans3 = self.KMeans3_model.predict(typicalSkinColorYCbCr)
 
         # writing 255 at skin color pixels (constructing the mask)
         predictedKmeans2[predictedKmeans2 == skinLabelKmeans2] = 255
         predictedKmeans2[predictedKmeans2 != 255] = 0
 
-        predictedKmeans3[predictedKmeans3 == skinLabelKmeans3] = 255
-        predictedKmeans3[predictedKmeans3 != 255] = 0
 
         # check what K is more meaningful to be used
-        andedImg = cv2.bitwise_and(predictedKmeans2, predictedKmeans3)
-        #score1 = np.sum(andedImg.T[0] == predictedKmeans2) / andedImg.size
-        #score2 = np.sum(andedImg.T[0] == predictedKmeans3) / andedImg.size
-        score = np.sum(predictedKmeans3 == predictedKmeans2) / predictedKmeans2.size
-        usedImg = 0
-        # if score1 > 0.95 and score2 > 0.95:
-        if score > 0.93:
-            usedImg = predictedKmeans3
-        else:
-            usedImg = predictedKmeans2
+        usedImg = predictedKmeans2
 
 
         # reshaping the image
@@ -122,10 +108,13 @@ class PreprocessModel:
 
         # apply bit wise and with the original image
         maskImage2 = np.repeat(segmentedImg[:, :, np.newaxis], 3, axis=2).astype(np.uint8)
-        # print(resizedImage.shape)
-        # print(maskImage2.shape)
-
         segmentedImgDueToKMeans = cv2.bitwise_and(resizedImage, maskImage2)
+
+        
+        # fill background with White
+        backGround = np.invert(segmentedImg.astype(np.uint8))
+        backGround = np.repeat(backGround[:, :, np.newaxis], 3, axis=2).astype(np.uint8)
+        segmentedImgDueToKMeans = cv2.bitwise_or(segmentedImgDueToKMeans, backGround)
 
         # saving the image
         segmented = cv2.cvtColor(segmentedImgDueToKMeans, cv2.COLOR_BGR2GRAY)
