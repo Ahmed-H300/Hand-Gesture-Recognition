@@ -31,6 +31,8 @@ def test():
 	preprocessModel = PreprocessModel()
 	# create the utils module
 	utils = Utils()
+	# initialize times array with empty list
+	times = []
 	# create the feature extraction model
 	#choose whether SIFT or HOG to RUN
 	model = None
@@ -60,18 +62,24 @@ def test():
 	# get number of photos in the folder
 	number_of_photos = len(os.listdir(path_test))
 	photo_counter = 0
+	# load centers in case of not hog
+	centres = None
+	if model_type != 'hog':
+		# load centers
+		centres = np.load(os.path.join(output_dir, 'centers.npy'))
 	for filename in images:
 		if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')): 
 			# Load image
 			img_path = os.path.join(path_test, filename)
 			img = cv2.imread(img_path)
+			# start timer
+			######################################################
+			utils.startTimePoint()
 			# preprocess the image
 			Image = preprocessModel.preProcess(img)
 			# get the features
 			descriptors = model.compute(Image)
 			if model_type != 'hog':
-				# load centers
-				centres = np.load(os.path.join(output_dir, 'centers.npy'))
 				# convert features to np vstack
 				descriptors = bag_of_features(descriptors, centres, k)
 
@@ -83,6 +91,10 @@ def test():
 			else:
 				# predict with classifier
 				prediction = classifier.predict([descriptors])
+			# stop timer
+			######################################################
+			elapsedTime = utils.getElapsedTimeInSeconds()
+			times.append(elapsedTime)
 			# append it to labels
 			labels = np.append(labels, prediction)
 			photo_counter += 1
@@ -94,6 +106,8 @@ def test():
 	# write labels in file output
 	# note 0 means one decimal place
 	utils.writeListToFile(labels.astype(np.float32), output_dir, results_file_name, 0)
+	# write times
+	utils.writeListToFile(np.array(times), output_dir, times_file_name, 3)
 	
 	# Training Ended
 	print('Test Ended Successfully')

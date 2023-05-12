@@ -23,3 +23,6 @@ actual_file_name = 'actual'
 
 # k for Kmeans
 k = 200
+
+# times file name
+times_file_name = 'time'
