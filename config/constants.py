@@ -10,7 +10,7 @@ data_dir_test = 'data'
 output_dir = 'out'
 
 # choose whether SIFT or HOG
-model_type = 'sift'
+model_type = 'hog'
 
 # choose whether SVM or RF
 classifier_type = 'svm'

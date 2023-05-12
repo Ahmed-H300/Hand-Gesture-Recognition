@@ -5,7 +5,7 @@ from config.constants import *
 from src.preProcess import PreprocessModel
 from src.sift import SIFT
 from src.hog import HOG
-from src.SVM import SVM
+from src.SVM_threads import SVM
 from src.rf import RF
 from src.performanceAnalysis import Utils
 from sklearn.model_selection import train_test_split
