@@ -63,9 +63,29 @@ class SIFT:
 if __name__ == '__main__':
     # run the sift
     sift = SIFT()
-    img = cv2.imread('test.jpg')
-    img = cv2.resize(img, (64, 64))
-    k, d = sift.compute_keypoints(img)
-    img_keypoints = sift.draw_descriptors(k, img)
+    img1 = cv2.imread('1.jpg')
+    img2 = cv2.imread('2.jpg')
+    ratio1 = 480 / img1.shape[1]
+    ratio2 = 480 / img2.shape[1]
+    img1 = cv2.resize(img1, (480, int(img1.shape[0] * ratio1)))
+    img2 = cv2.resize(img2, (480, int(img2.shape[0] * ratio2)))
+    img2 = cv2.resize(img2, (480, 480))
+    k1, d1 = sift.compute_keypoints(img1)
+    k2, d2 = sift.compute_keypoints(img2)
+    print(len(d1))
+    print(len(d2))
+    
+    img_keypoints1 = sift.draw_descriptors(k1, img1)
+    img_keypoints2 = sift.draw_descriptors(k2, img2)
+    # match keypoints from img1 and img2
+    #feature matching
+    bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
+    matches = bf.match(d1,d2)
+    matches = sorted(matches, key = lambda x:x.distance)
+    img3 = cv2.drawMatches(img1, k1, img2, k2, matches[:50], img2, flags=2)
     # save the image with the keypoints on it
-    cv2.imwrite('test_sift.jpg', img_keypoints)
+    cv2.imwrite('test_sift1.jpg', img_keypoints1)
+    cv2.imwrite('test_sift2.jpg', img_keypoints2)
+    cv2.imwrite('test_sift3.jpg', img1)
+    cv2.imwrite('test_sift4.jpg', img2)
+    cv2.imwrite('test_sift5.jpg', img3)
