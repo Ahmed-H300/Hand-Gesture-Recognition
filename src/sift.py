@@ -69,7 +69,7 @@ if __name__ == '__main__':
     ratio2 = 480 / img2.shape[1]
     img1 = cv2.resize(img1, (480, int(img1.shape[0] * ratio1)))
     img2 = cv2.resize(img2, (480, int(img2.shape[0] * ratio2)))
-    img2 = cv2.resize(img2, (480, 480))
+    #img2 = cv2.resize(img2, (480, 480))
     k1, d1 = sift.compute_keypoints(img1)
     k2, d2 = sift.compute_keypoints(img2)
     print(len(d1))

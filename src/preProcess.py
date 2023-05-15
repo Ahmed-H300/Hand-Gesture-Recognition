@@ -16,6 +16,10 @@ class PreprocessModel:
 
     def preProcess(self, img):
 
+        # check if the image is vertical
+        if img.shape[1] < img.shape[0]:
+            img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+
         # resize the image
         ratio = 480 / img.shape[1]
         resizedImage = cv2.resize(img, (480, int(img.shape[0] * ratio)))
