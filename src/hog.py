@@ -16,7 +16,7 @@ class HOG:
         # NOTE: # transform_sqrt = False
         hog_features = hog(gray_img, orientations=9 , pixels_per_cell= (8,8),
                                     cells_per_block= (2,2), 
-                                    visualize =False , block_norm = 'L2')
+                                    visualize =False , block_norm = 'L2-Hys')
         # Apply 9ULBP
         # Define the parameters for LBP calculation
         radius = 1

@@ -127,4 +127,4 @@ class PreprocessModel:
         ratio = 64 / segmented.shape[1]
         resizedImage = cv2.resize(segmented, (64, int(segmented.shape[0] * ratio)))
         
-        return resizedImage #cv2.resize(segmented, (64, 64))
+        return cv2.resize(segmented, (64, 64))

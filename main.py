@@ -10,6 +10,13 @@ from src.rf import RF
 from src.performanceAnalysis import Utils
 from sklearn.model_selection import train_test_split
 from natsort import natsorted
+from sklearn import svm, datasets
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC
+from sklearn.datasets import fetch_openml
+from sklearn.metrics import classification_report
+
+
 
 # use with features discreptors to bag the feature into fixed size
 def bag_of_features(features, centres, k = 200):
@@ -316,6 +323,53 @@ def print_welcome_message():
 
 	''')
 
+
+def svm_gridSearch():
+
+	# train
+	features, labels = train_builtin()
+
+	# Define the SVM parameters for grid search
+	param_grid = {
+    'C': [1, 10, 100],  # Regularization parameter
+    'gamma': [0.1, 0.01, 0.001],  # Kernel coefficient
+    'kernel': ['linear', 'rbf']  # Kernel type
+	}
+
+	X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
+
+	# Create an SVM classifier
+	svm = SVC()
+
+	# Perform grid search to find the best hyperparameters
+	grid_search = GridSearchCV(svm, param_grid, scoring='accuracy', n_jobs=-1, cv=5)
+	grid_search.fit(X_train, y_train)
+
+	# Get the best parameters and best score
+	best_params = grid_search.best_params_
+	best_score = grid_search.best_score_
+
+	# Print the best parameters and best score
+	print("Best Parameters: ", best_params)
+	print("Best Score: ", best_score)
+
+	# Fit the SVM classifier with the best parameters
+	svm = SVC(**best_params)
+	svm.fit(X_train, y_train)
+
+	# Make predictions on the test data
+	y_pred = svm.predict(X_test)
+
+	# Evaluate the performance
+	print(classification_report(y_test, y_pred))
+
+	# save the model
+	utils = Utils()
+	utils.saveModel(svm, output_dir, f'{classifier_type}_model')	
+
+
+
+
 # main function
 def main():
 
@@ -323,7 +377,7 @@ def main():
 	print_welcome_message()
 
 	# get the choice whether to run train or test
-	userChoice = int(input("enter 1 to to test, 2 to train, 3 to test and train.\n"))
+	userChoice = int(input("enter 1 to to test, 2 to train, 3 to test and train, 4 to preform svm grid search.\n"))
 
 	# if the user choice is 1 then run test
 	if userChoice == 1:
@@ -337,6 +391,10 @@ def main():
 	elif userChoice == 3:
 			print("Entering train and test mode...")
 			train_test()
+	# if the user choice is 4 then run grid search on svm
+	elif userChoice == 4:
+			print("Grid Search...")
+			svm_gridSearch()			
 	# if the user choice is not 1 or 2 then print wrong choice
 	else:
 			print("wrong choice")
