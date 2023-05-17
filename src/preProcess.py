@@ -14,11 +14,9 @@ class PreprocessModel:
         # creating 2 Kmean models (one with K = 2 and the other one with K = 3)
         self.KMeans2_model = KMeans(n_clusters=2, random_state=0, n_init='auto')
 
-    def preProcess(self, img):
+        self.i = 0
 
-        # check if the image is vertical
-        if img.shape[1] < img.shape[0]:
-            img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+    def preProcess(self, img):
 
         # resize the image
         ratio = 480 / img.shape[1]
@@ -123,8 +121,10 @@ class PreprocessModel:
         # saving the image
         segmented = cv2.cvtColor(segmentedImgDueToKMeans, cv2.COLOR_BGR2GRAY)
 
-        segmented = cv2.blur(segmented, (10, 10)) 
-        ratio = 64 / segmented.shape[1]
-        resizedImage = cv2.resize(segmented, (64, int(segmented.shape[0] * ratio)))
-        
+        #segmented = cv2.blur(segmented, (10, 10)) 
+        #ratio = 64 / segmented.shape[1]
+        #resizedImage = cv2.resize(segmented, (64, int(segmented.shape[0] * ratio)))
+        cv2.imwrite(f'{self.i}.jpg', segmented)
+        self.i = self.i + 1
+
         return cv2.resize(segmented, (64, 64))

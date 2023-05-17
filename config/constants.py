@@ -4,13 +4,13 @@
 data_dir_train = 'train'
 
 # Path to dataset folder for test
-data_dir_test = 'data'
+data_dir_test = 'data2'
 
 # Path to output folder
 output_dir = 'out'
 
 # choose whether SIFT or HOG
-model_type = 'sift'
+model_type = 'hog'
 
 # choose whether SVM or RF
 classifier_type = 'svm'
@@ -19,7 +19,7 @@ classifier_type = 'svm'
 results_file_name = 'results'
 
 # actual file name
-actual_file_name = 'actual'
+actual_file_name = 'actual2'
 
 # k for Kmeans
 k = 200

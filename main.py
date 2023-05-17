@@ -331,9 +331,10 @@ def svm_gridSearch():
 
 	# Define the SVM parameters for grid search
 	param_grid = {
-    'C': [1, 10, 100],  # Regularization parameter
-    'gamma': [0.1, 0.01, 0.001],  # Kernel coefficient
-    'kernel': ['linear', 'rbf']  # Kernel type
+    'C': [1, 10, 100, 1000],  # Regularization parameter
+    'gamma': [1, 0.1, 0.01, 0.001],  # Kernel coefficient
+    'kernel': ['linear', 'poly', 'sigmoid', 'rbf'],  # Kernel type
+    'degree': [2, 3, 4, 5, 6]
 	}
 
 	X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
