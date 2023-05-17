@@ -124,7 +124,7 @@ class PreprocessModel:
         #segmented = cv2.blur(segmented, (10, 10)) 
         #ratio = 64 / segmented.shape[1]
         #resizedImage = cv2.resize(segmented, (64, int(segmented.shape[0] * ratio)))
-        cv2.imwrite(f'{self.i}.jpg', segmented)
-        self.i = self.i + 1
+        # cv2.imwrite(f'{self.i}.jpg', segmented)
+        # self.i = self.i + 1
 
         return cv2.resize(segmented, (64, 64))

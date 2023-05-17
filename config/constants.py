@@ -4,7 +4,7 @@
 data_dir_train = 'train'
 
 # Path to dataset folder for test
-data_dir_test = 'data2'
+data_dir_test = 'data'
 
 # Path to output folder
 output_dir = 'out'
@@ -19,7 +19,7 @@ classifier_type = 'svm'
 results_file_name = 'results'
 
 # actual file name
-actual_file_name = 'actual2'
+actual_file_name = 'actual'
 
 # k for Kmeans
 k = 200

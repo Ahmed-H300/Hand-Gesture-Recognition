@@ -265,7 +265,7 @@ def train_test():
 	utils = Utils()
 
 	# Split into training and testing sets
-	X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
+	X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=0)
 	if len(X_train) == 0 or len(X_test) == 0:
 			print("Not enough samples to split into training and testing sets.")
 			return
